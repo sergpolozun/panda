@@ -34,7 +34,7 @@ class Mapmanager():
         self.color = self.getColor(int(position[2]))
         self.block.setColor(self.color)
         self.block.reparentTo(self.land)
-        self.block.setTag("at", str(pos))
+        self.block.setTag("at", str(position))
 
     def clear(self):
         """обнуляет карту"""
@@ -56,14 +56,37 @@ class Mapmanager():
                 y += 1
         return x, y
 
+    def isEmpty(self, pos):
+        blocks = self.findBlocks(pos)
+        if blocks:
+            return False
+        else:
+            return True
 
-def isEmpty(self, pos):
-    blocks = self.findBlocks(pos)
-    if blocks:
-        return False
-    else:
-        return True
+    def findBlocks(self, pos):
+        return self.land.findAllMatches("=at=" + str(pos))
 
+    def findHighestEmpty(self, pos):
+        x, y, z = pos
+        z = 1
+        while not self.isEmpty((x, y, z)):
+            z += 1
+        return (x, y, z)
 
-def findBlocks(self, pos):
-    return self.land.findAllMatches("=at=" + str(pos))
+    def delBlock(self, position):
+        blocks = self.findBlocks(position)
+        for block in blocks:
+            block.removeNode()
+
+    def buildBlock(self, pos):
+        x, y, z = pos
+        new = self.findHighestEmpty(pos)
+        if new[2] <= z + 1:
+            self.addBlock(new)
+
+    def delBlockFrom(self, pos):
+        x, y, z = self.findHighestEmpty(pos)
+        pos = x, y, z - 1
+        blocks = self.findBlocks(pos)
+        for block in blocks:
+            block.removeNode()
