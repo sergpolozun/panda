@@ -1,13 +1,17 @@
 key_turn_right = 'm'  # поворот камеры направо
 key_turn_left = 'n'  # поворот камеры налево
-key_forward = 'w'
-key_left = 'a'
-key_back = 's'
-key_right = 'd'
+key_turn_up = 'k'  # поворот камеры вверх
+key_turn_down = 'l'  # поворот камеры вниз
+key_forward = 'w'  # движение вперед
+key_left = 'a'  # движение влево
+key_back = 's'  # движение назад
+key_right = 'd' # движение вправо
 key_switch_camera = 'c'  # смена привязки камеры к герою
-key_up = 'e'
-key_down = 'q'
-key_switch_mode = 'z'
+key_up = 'e'  # движение вверх
+key_down = 'q'  # движение вниз
+key_switch_mode = 'z'  # смена игрового режима
+key_build = 'b'  # постройка блока
+key_destroy = 'v'  # разрушение блока
 
 
 class Hero():
@@ -55,12 +59,24 @@ class Hero():
         base.accept(key_down, self.down)
         base.accept(key_down + '-repeat', self.down)
         base.accept(key_switch_mode, self.changeMode)
+        base.accept(key_build, self.build)
+        base.accept(key_destroy, self.destroy)
+        base.accept(key_turn_up, self.turn_up)
+        base.accept(key_turn_up+'-repeat', self.turn_up)
+        base.accept(key_turn_down, self.turn_down)
+        base.accept(key_turn_down+'-repeat', self.turn_down)
 
     def turn_right(self):
         self.hero.setH((self.hero.getH() - 5) % 360)
 
     def turn_left(self):
         self.hero.setH((self.hero.getH() + 5) % 360)
+
+    def turn_up(self):
+        self.hero.setP((self.hero.getP() - 5) % 360)
+
+    def turn_down(self):
+        self.hero.setP((self.hero.getP() + 5) % 360)
 
     def changeView(self):
         if self.cameraOn:
@@ -74,8 +90,13 @@ class Hero():
 
     def try_move(self, angle):
         pos = self.look_at(angle)
-        self.hero.setPos(pos)
-        
+        if self.land.isEmpty(pos):
+            pos = self.land.findHighestEmpty(pos)
+            self.hero.setPos(pos)
+        else:
+            pos = pos[0], pos[1], pos[2] + 1
+            if self.land.isEmpty(pos):
+                self.hero.setPos(pos)
 
     def move_to(self, angle):
         if self.mode:
@@ -138,3 +159,19 @@ class Hero():
             self.mode = False
         else:
             self.mode = True
+
+    def build(self):
+        angle = self.hero.getH() % 360
+        pos = self.look_at(angle)
+        if self.mode:
+            self.land.addBlock(pos)
+        else:
+            self.land.buildBlock(pos)
+
+    def destroy(self):
+        angle = self.hero.getH() % 360
+        pos = self.look_at(angle)
+        if self.mode:
+            self.land.delBlock(pos)
+        else:
+            self.land.delBlockFrom(pos)
